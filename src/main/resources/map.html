@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UCC SmartRoute Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    html, body, #map { height: 100%; width: 100%; margin: 0; font-family: Arial, sans-serif; }
+    .map-note { position: absolute; z-index: 1000; bottom: 12px; left: 12px; background: white;
+      padding: 8px 11px; border-radius: 6px; box-shadow: 0 1px 5px #777; font-size: 12px; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="map-note">UCC SmartRoute · Markers are reference points; routes require verified walkway data.</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  const map = L.map('map').setView([5.11704, -1.29142], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  const markerLayer = L.layerGroup().addTo(map);
+  let routeLayer = null;
+
+  function showLocations(locations) {
+    markerLayer.clearLayers();
+    locations.forEach(location => {
+      L.marker([location.lat, location.lon]).bindPopup(
+        '<strong>' + escapeHtml(location.name) + '</strong>'
+      ).addTo(markerLayer);
+    });
+    if (locations.length) {
+      const bounds = L.latLngBounds(locations.map(p => [p.lat, p.lon]));
+      map.fitBounds(bounds.pad(0.18));
+    }
+  }
+  function drawRoute(points) {
+    clearRoute();
+    routeLayer = L.polyline(points, { color: '#1463d6', weight: 6, opacity: 0.9 }).addTo(map);
+    map.fitBounds(routeLayer.getBounds().pad(0.2));
+  }
+  function clearRoute() {
+    if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+  }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[char]));
+  }
+</script>
+</body>
+</html>
